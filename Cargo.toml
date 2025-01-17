@@ -1,0 +1,12 @@
+[package]
+name = "rusty-java"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+tempfile = "3.2.0"
+toml = "0.5.8"
+colored = "2.0.0"
+clap = {version = "4.0", features = ["derive"]}
+regex = "1.5.4"

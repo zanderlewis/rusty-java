@@ -1,0 +1,8 @@
+[project]
+name = "MyJavaProject"
+version = "1.0.0"
+main_class = "Main"
+build_tool = "gradle"
+
+# [dependencies]
+# junit = "junit:junit:4.13.2"

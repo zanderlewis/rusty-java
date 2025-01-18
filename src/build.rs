@@ -29,8 +29,9 @@ pub fn init_project() -> Result<(), String> {
         r#"[project]
 name = "my_project"
 version = "0.1.0"
-main_class = "com.example.Main"
+main_class = "Main"
 build_tool = "gradle" # or "maven"
+base_namespace = "com.example"
 
 # [dependencies]
 # junit = "junit:junit:4.13.2"
@@ -47,18 +48,55 @@ build_tool = "gradle" # or "maven"
         File::create(main_class_path).map_err(|_| "Failed to create `Main.java`.".to_string())?;
     writeln!(
         main_class_file,
-        r#"package com.example;
+        r#"public class Main {{
 
-public class Main {{
     public static void main(String[] args) {{
-        System.out.println("Hello, RSJ!");
+        ClassOne.oneMethod();
+        ClassTwo.twoMethod();
     }}
 }}
 "#
     )
     .map_err(|_| "Failed to write to `Main.java`.".to_string())?;
 
+    // Create sample ClassOne.java
+    let classone_dir = src_dir.join("classone");
+    fs::create_dir(&classone_dir).map_err(|_| "Failed to create `classone` directory.".to_string())?;
+    let classone_path = classone_dir.join("ClassOne.java");
+    let mut classone_file =
+        File::create(classone_path).map_err(|_| "Failed to create `ClassOne.java`.".to_string())?;
+    writeln!(
+        classone_file,
+        r#"public class ClassOne {{
+
+    public static void oneMethod() {{
+        System.out.println("ClassOne method");
+    }}
+}}
+"#
+    )
+    .map_err(|_| "Failed to write to `ClassOne.java`.".to_string())?;
+
+    // Create sample ClassTwo.java
+    let classtwo_dir = src_dir.join("classtwo");
+    fs::create_dir(&classtwo_dir).map_err(|_| "Failed to create `classtwo` directory.".to_string())?;
+    let classtwo_path = classtwo_dir.join("ClassTwo.java");
+    let mut classtwo_file =
+        File::create(classtwo_path).map_err(|_| "Failed to create `ClassTwo.java`.".to_string())?;
+    writeln!(
+        classtwo_file,
+        r#"public class ClassTwo {{
+
+    public static void twoMethod() {{
+        System.out.println("ClassTwo method");
+    }}
+}}
+"#
+    )
+    .map_err(|_| "Failed to write to `ClassTwo.java`.".to_string())?;
+
     printinfo("Initialized a new RSJ project.");
+
     Ok(())
 }
 

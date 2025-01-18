@@ -14,7 +14,7 @@ pub fn setup_maven_project(config: &Config, src_dir: &str, temp_path: &Path) -> 
         .map_err(|_| "Failed to create Maven project structure.".to_string())?;
 
     // Copy source files
-    copy_src_files(src_dir, &maven_dir.join("src/main/java"))?;
+    copy_src_files(src_dir, &maven_dir.join("src/main/java".to_owned() + "/" + &config.project.base_namespace.replace(".", "/")), &config.project.base_namespace)?;
 
     // Create `pom.xml`
     let mut pom_file = File::create(pom_file_path)
@@ -61,7 +61,7 @@ pub fn setup_maven_project(config: &Config, src_dir: &str, temp_path: &Path) -> 
         config.project.name,
         config.project.version,
         generate_maven_dependencies(&config.dependencies),
-        config.project.main_class
+        config.project.base_namespace.to_owned() + "." + &config.project.main_class
     ).map_err(|_| "Failed to write to `pom.xml`.".to_string())?;
 
     Ok(())

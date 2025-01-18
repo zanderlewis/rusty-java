@@ -19,8 +19,12 @@ pub fn setup_gradle_project(
     fs::create_dir_all(gradle_dir.join("src/main/java"))
         .map_err(|_| "Failed to create Gradle project structure.".to_string())?;
 
-    // Copy source files
-    copy_src_files(src_dir, &gradle_dir.join("src/main/java"))?;
+    // Copy source files with base_namespace
+    copy_src_files(
+        src_dir,
+        &gradle_dir.join("src/main/java".to_owned() + "/" + &config.project.base_namespace.replace(".", "/")),
+        &config.project.base_namespace,
+    )?;
 
     // Create `settings.gradle` and set the project name
     let mut settings_file = File::create(&settings_file_path)
@@ -32,7 +36,7 @@ pub fn setup_gradle_project(
     )
     .map_err(|_| "Failed to write to `settings.gradle`.".to_string())?;
 
-    // Create `build.gradle` without setting `rootProject.name`
+    // Create `build.gradle`
     let mut build_file = File::create(&build_file_path)
         .map_err(|_| "Failed to create `build.gradle`.".to_string())?;
     writeln!(
@@ -62,7 +66,7 @@ tasks.jar {{
         config.project.name,
         config.project.version,
         generate_gradle_dependencies(&config.dependencies),
-        config.project.main_class
+        config.project.base_namespace.to_owned() + "." + &config.project.main_class
     )
     .map_err(|_| "Failed to write to `build.gradle`.".to_string())?;
 

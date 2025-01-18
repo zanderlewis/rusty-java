@@ -1,5 +1,5 @@
 [project]
-name = "hello_rsj"
+name = "namespaces"
 version = "1.0.0"
 main_class = "Main"
 build_tool = "gradle" # or "maven"

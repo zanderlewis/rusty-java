@@ -1,0 +1,9 @@
+[project]
+name = "my_project"
+version = "1.0.0"
+main_class = "Main"
+build_tool = "gradle" # or "maven"
+base_namespace = "com.example"
+
+[dependencies]
+guava = "com.google.guava:guava:30.1-jre"

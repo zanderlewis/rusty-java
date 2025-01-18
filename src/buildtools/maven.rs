@@ -54,6 +54,27 @@ pub fn setup_maven_project(config: &Config, src_dir: &str, temp_path: &Path) -> 
                     </archive>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>{}</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>"#,
@@ -61,6 +82,7 @@ pub fn setup_maven_project(config: &Config, src_dir: &str, temp_path: &Path) -> 
         config.project.name,
         config.project.version,
         generate_maven_dependencies(&config.dependencies),
+        config.project.base_namespace.to_owned() + "." + &config.project.main_class,
         config.project.base_namespace.to_owned() + "." + &config.project.main_class
     ).map_err(|_| "Failed to write to `pom.xml`.".to_string())?;
 

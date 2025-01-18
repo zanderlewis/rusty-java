@@ -143,14 +143,14 @@ pub fn build_project() -> Result<(), String> {
             #[cfg(target_os = "windows")]
             {
                 Command::new("cmd")
-                    .args(&["/C", "gradle", "build"])
+                    .args(&["/C", "gradle", "shadowJar"])
                     .current_dir(&gradle_project_dir)
                     .status()
             }
             #[cfg(not(target_os = "windows"))]
             {
                 Command::new("gradle")
-                    .arg("build")
+                    .arg("shadowJar")
                     .current_dir(&gradle_project_dir)
                     .status()
             }

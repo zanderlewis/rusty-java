@@ -2,7 +2,7 @@
 name = "hello_rsj"
 version = "1.0.0"
 main_class = "Main"
-build_tool = "gradle" # or "maven"
+build_tool = "gradle"
 base_namespace = "com.example"
 
 # [dependencies]

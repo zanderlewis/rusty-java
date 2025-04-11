@@ -3,7 +3,6 @@ use std::fs;
 use std::path::Path;
 
 pub const GRADLE_PATH: &str = "gradle";
-pub const MAVEN_PATH: &str = "maven";
 pub const OUTPUT_PATH: &str = "rsj_build";
 
 pub fn printerr(msg: &str) {
@@ -95,10 +94,10 @@ pub fn rsj_seperator() {
     );
 }
 
-pub fn gradle_maven_seperator() {
+pub fn gradle_seperator() {
     println!(
         "{}",
-        "==============================Gradle||Maven==============================".green()
+        "==============================Gradle Build==============================".green()
     );
 }
 

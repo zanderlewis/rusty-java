@@ -3,11 +3,10 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 
-use crate::buildtools::{gradle::setup_gradle_project, maven::setup_maven_project};
+use crate::buildtools::gradle::setup_gradle_project;
 use crate::config::load_config;
 use crate::utils::{
-    gradle_maven_seperator, printerr, printinfo, rsj_seperator, GRADLE_PATH, MAVEN_PATH,
-    OUTPUT_PATH,
+    gradle_seperator, printinfo, rsj_seperator, GRADLE_PATH, OUTPUT_PATH,
 };
 
 pub fn init_project() -> Result<(), String> {
@@ -30,11 +29,11 @@ pub fn init_project() -> Result<(), String> {
 name = "my_project"
 version = "0.1.0"
 main_class = "Main"
-build_tool = "gradle" # or "maven"
+build_tool = "gradle"
 base_namespace = "com.example"
 
 # [dependencies]
-# junit = "junit:junit:4.13.2"
+# junit = "org.junit.jupiter:junit-jupiter:5.9.1"
 "#
     )
     .map_err(|_| "Failed to write to `rsj.toml`.".to_string())?;
@@ -95,13 +94,18 @@ base_namespace = "com.example"
     )
     .map_err(|_| "Failed to write to `ClassTwo.java`.".to_string())?;
 
-    printinfo("Initialized a new RSJ project.");
+    printinfo("Initialized a new RSJ project with Gradle.");
 
     Ok(())
 }
 
 pub fn build_project() -> Result<(), String> {
     let config = load_config().map_err(|e| e)?;
+
+    // Only allow gradle as build_tool
+    if config.project.build_tool.to_lowercase() != "gradle" {
+        return Err("Error: Only Gradle is supported as the build tool.".to_string());
+    }
 
     let src_dir = Path::new(config.project.root_path.as_deref().unwrap_or(".")).join("src");
     if !src_dir.exists() {
@@ -124,44 +128,47 @@ pub fn build_project() -> Result<(), String> {
         temp_path.display()
     ));
 
-    gradle_maven_seperator();
+    gradle_seperator();
 
-    match config.project.build_tool.to_lowercase().as_str() {
-        "gradle" => setup_gradle_project(&config, src_dir.to_str().unwrap(), &temp_path)?,
-        "maven" => setup_maven_project(&config, src_dir.to_str().unwrap(), &temp_path)?,
-        _ => {
-            printerr("Unsupported build tool specified.");
-        }
-    }
+    // Setup and build the Gradle project
+    setup_gradle_project(&config, src_dir.to_str().unwrap(), &temp_path)?;
 
     // Define the Gradle project directory
     let gradle_project_dir = temp_path.join(GRADLE_PATH);
 
-    // Build the project
-    let build_status = match config.project.build_tool.to_lowercase().as_str() {
-        "gradle" => {
-            #[cfg(target_os = "windows")]
-            {
-                Command::new("cmd")
-                    .args(&["/C", "gradle", "shadowJar"])
-                    .current_dir(&gradle_project_dir)
-                    .status()
-            }
-            #[cfg(not(target_os = "windows"))]
-            {
-                Command::new("gradle")
-                    .arg("shadowJar")
-                    .current_dir(&gradle_project_dir)
-                    .status()
-            }
+    // Run Gradle with wrapper if available, otherwise use system's Gradle
+    let build_status = if Path::new(&gradle_project_dir.join("gradlew")).exists() {
+        #[cfg(target_os = "windows")]
+        {
+            Command::new("cmd")
+                .args(&["/C", "gradlew.bat", "shadowJar"])
+                .current_dir(&gradle_project_dir)
+                .status()
         }
-        "maven" => Command::new("mvn")
-            .arg("package")
-            .current_dir(&temp_path.join(MAVEN_PATH))
-            .status(),
-        _ => unreachable!(),
+        #[cfg(not(target_os = "windows"))]
+        {
+            Command::new("./gradlew")
+                .arg("shadowJar")
+                .current_dir(&gradle_project_dir)
+                .status()
+        }
+    } else {
+        #[cfg(target_os = "windows")]
+        {
+            Command::new("cmd")
+                .args(&["/C", "gradle", "shadowJar"])
+                .current_dir(&gradle_project_dir)
+                .status()
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            Command::new("gradle")
+                .arg("shadowJar")
+                .current_dir(&gradle_project_dir)
+                .status()
+        }
     }
-    .map_err(|_| "Failed to run the build tool.".to_string())?;
+    .map_err(|_| "Failed to run Gradle build.".to_string())?;
 
     rsj_seperator();
 

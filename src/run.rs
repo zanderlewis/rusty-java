@@ -3,7 +3,7 @@ use std::process::Command;
 
 use crate::build::build_project;
 use crate::config::load_config;
-use crate::utils::{basic_seperator, printinfo, OUTPUT_PATH};
+use crate::utils::{basic_seperator, printinfo, GRADLE_PATH, OUTPUT_PATH};
 
 pub fn run_project() -> Result<(), String> {
     build_project()?;
@@ -11,18 +11,12 @@ pub fn run_project() -> Result<(), String> {
     let config = load_config().map_err(|e| e)?;
     let temp_path = Path::new(OUTPUT_PATH).to_path_buf();
 
-    let jar_path = if config.project.build_tool.to_lowercase() == "gradle" {
-        temp_path
-            .join("gradle")
-            .join("build")
-            .join("libs")
-            .join(format!("{}-{}-all.jar", config.project.name, config.project.version))
-    } else {
-        temp_path
-            .join("maven")
-            .join("target")
-            .join(format!("{}-{}.jar", config.project.name, config.project.version))
-    };
+    // Now always use Gradle-specific path
+    let jar_path = temp_path
+        .join(GRADLE_PATH)
+        .join("build")
+        .join("libs")
+        .join(format!("{}-{}.jar", config.project.name, config.project.version));
 
     if !jar_path.exists() {
         return Err("Build output JAR not found.".to_string());

@@ -1,7 +1,7 @@
+use std::env;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
-use std::env;
 
 // Helper function to run a command in a specific directory
 pub fn run_command_in_dir(dir: &Path, program: &str, args: &[&str]) -> Result<(), String> {
@@ -36,17 +36,17 @@ pub fn prepare_example_project(example_name: &str) -> Result<std::path::PathBuf,
     // Get the cargo manifest directory
     let manifest_dir = env::var("CARGO_MANIFEST_DIR")
         .map_err(|_| "Failed to get CARGO_MANIFEST_DIR".to_string())?;
-    
+
     // Create path to example project
     let example_path = Path::new(&manifest_dir).join("examples").join(example_name);
-    
+
     if !example_path.exists() {
         return Err(format!("Example project '{}' does not exist", example_name));
     }
-    
+
     // Clean up any previous build artifacts
     cleanup_build_dir(&example_path);
-    
+
     Ok(example_path)
 }
 
@@ -63,7 +63,7 @@ fn find_binary_path() -> Result<std::path::PathBuf, String> {
     // If that fails, try to find it in the target directory
     let manifest_dir = env::var("CARGO_MANIFEST_DIR")
         .map_err(|_| "Failed to get CARGO_MANIFEST_DIR".to_string())?;
-    
+
     // Try debug build
     let debug_path = Path::new(&manifest_dir).join("target/debug/rusty-java");
     if debug_path.exists() {
@@ -99,10 +99,6 @@ fn find_binary_path() -> Result<std::path::PathBuf, String> {
 // Execute rsj command on an example project
 pub fn run_rsj_command(example_path: &Path, command: &str) -> Result<(), String> {
     let bin_path = find_binary_path()?;
-    
-    run_command_in_dir(
-        example_path,
-        bin_path.to_str().unwrap(),
-        &[command]
-    )
+
+    run_command_in_dir(example_path, bin_path.to_str().unwrap(), &[command])
 }

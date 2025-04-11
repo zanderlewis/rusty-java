@@ -5,9 +5,7 @@ use std::process::Command;
 
 use crate::buildtools::gradle::setup_gradle_project;
 use crate::config::load_config;
-use crate::utils::{
-    gradle_seperator, printinfo, rsj_seperator, GRADLE_PATH, OUTPUT_PATH,
-};
+use crate::utils::{gradle_seperator, printinfo, rsj_seperator, GRADLE_PATH, OUTPUT_PATH};
 
 pub fn init_project() -> Result<(), String> {
     let config_path = Path::new("rsj.toml");
@@ -60,7 +58,8 @@ base_namespace = "com.example"
 
     // Create sample ClassOne.java
     let classone_dir = src_dir.join("classone");
-    fs::create_dir(&classone_dir).map_err(|_| "Failed to create `classone` directory.".to_string())?;
+    fs::create_dir(&classone_dir)
+        .map_err(|_| "Failed to create `classone` directory.".to_string())?;
     let classone_path = classone_dir.join("ClassOne.java");
     let mut classone_file =
         File::create(classone_path).map_err(|_| "Failed to create `ClassOne.java`.".to_string())?;
@@ -78,7 +77,8 @@ base_namespace = "com.example"
 
     // Create sample ClassTwo.java
     let classtwo_dir = src_dir.join("classtwo");
-    fs::create_dir(&classtwo_dir).map_err(|_| "Failed to create `classtwo` directory.".to_string())?;
+    fs::create_dir(&classtwo_dir)
+        .map_err(|_| "Failed to create `classtwo` directory.".to_string())?;
     let classtwo_path = classtwo_dir.join("ClassTwo.java");
     let mut classtwo_file =
         File::create(classtwo_path).map_err(|_| "Failed to create `ClassTwo.java`.".to_string())?;
@@ -100,7 +100,7 @@ base_namespace = "com.example"
 }
 
 pub fn build_project() -> Result<(), String> {
-    let config = load_config().map_err(|e| e)?;
+    let config = load_config()?;
 
     // Only allow gradle as build_tool
     if config.project.build_tool.to_lowercase() != "gradle" {

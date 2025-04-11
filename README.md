@@ -1,4 +1,5 @@
 # RSJ: Rusty Java
+[![Tests](https://github.com/zanderlewis/rusty-java/actions/workflows/tests.yml/badge.svg)](https://github.com/zanderlewis/rusty-java/actions/workflows/tests.yml)
 
 RSJ is a tool written in Rust for using a cargo-like file structure for Gradle Java projects. It is designed to be a simple and easy-to-use tool for managing Java projects with a clean, minimal directory structure.
 

@@ -19,7 +19,7 @@ pub fn setup_gradle_project(
     // Create Gradle project structure
     fs::create_dir_all(gradle_dir.join("src/main/java"))
         .map_err(|_| "Failed to create Gradle project structure.".to_string())?;
-    
+
     // Create resources directory for non-Java files
     fs::create_dir_all(gradle_dir.join("src/main/resources"))
         .map_err(|_| "Failed to create resources directory.".to_string())?;
@@ -27,7 +27,9 @@ pub fn setup_gradle_project(
     // Copy source files with base_namespace
     copy_src_files(
         src_dir,
-        &gradle_dir.join("src/main/java".to_owned() + "/" + &config.project.base_namespace.replace(".", "/")),
+        &gradle_dir.join(
+            "src/main/java".to_owned() + "/" + &config.project.base_namespace.replace(".", "/"),
+        ),
         &config.project.base_namespace,
     )?;
 
@@ -154,11 +156,12 @@ fn create_gradle_wrapper(gradle_dir: &Path) -> Result<(), String> {
     // Create the gradle/wrapper directory
     fs::create_dir_all(gradle_dir.join("gradle/wrapper"))
         .map_err(|_| "Failed to create Gradle wrapper directory.".to_string())?;
-    
+
     // Create gradle-wrapper.properties
-    let mut properties_file = File::create(gradle_dir.join("gradle/wrapper/gradle-wrapper.properties"))
-        .map_err(|_| "Failed to create gradle-wrapper.properties.".to_string())?;
-    
+    let mut properties_file =
+        File::create(gradle_dir.join("gradle/wrapper/gradle-wrapper.properties"))
+            .map_err(|_| "Failed to create gradle-wrapper.properties.".to_string())?;
+
     writeln!(
         properties_file,
         r#"distributionBase=GRADLE_USER_HOME
@@ -167,18 +170,20 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip
 networkTimeout=10000
 zipStoreBase=GRADLE_USER_HOME
 zipStorePath=wrapper/dists"#
-    ).map_err(|_| "Failed to write gradle-wrapper.properties.".to_string())?;
+    )
+    .map_err(|_| "Failed to write gradle-wrapper.properties.".to_string())?;
 
     // Create gradlew script (Unix)
     let mut gradlew_file = File::create(gradle_dir.join("gradlew"))
         .map_err(|_| "Failed to create gradlew script.".to_string())?;
-    
+
     writeln!(
         gradlew_file,
         r#"#!/bin/sh
 # Gradle wrapper script for Unix-based systems
 exec "$(dirname "$0")"/gradle/wrapper/gradle-wrapper.jar "$@""#
-    ).map_err(|_| "Failed to write gradlew script.".to_string())?;
+    )
+    .map_err(|_| "Failed to write gradlew script.".to_string())?;
 
     // Make the gradlew file executable on Unix systems
     #[cfg(not(target_os = "windows"))]
@@ -195,13 +200,14 @@ exec "$(dirname "$0")"/gradle/wrapper/gradle-wrapper.jar "$@""#
     // Create gradlew.bat script (Windows)
     let mut gradlew_bat_file = File::create(gradle_dir.join("gradlew.bat"))
         .map_err(|_| "Failed to create gradlew.bat script.".to_string())?;
-    
+
     writeln!(
         gradlew_bat_file,
         r#"@rem Gradle wrapper script for Windows
 @echo off
 java -jar "%~dp0/gradle/wrapper/gradle-wrapper.jar" %*"#
-    ).map_err(|_| "Failed to write gradlew.bat script.".to_string())?;
+    )
+    .map_err(|_| "Failed to write gradlew.bat script.".to_string())?;
 
     Ok(())
 }

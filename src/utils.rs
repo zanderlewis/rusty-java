@@ -13,11 +13,7 @@ pub fn printinfo(msg: &str) {
     println!("{}{}", "[INFO] ".blue().bold(), msg);
 }
 
-pub fn copy_src_files(
-    src_dir: &str,
-    dest_dir: &Path,
-    base_namespace: &str,
-) -> Result<(), String> {
+pub fn copy_src_files(src_dir: &str, dest_dir: &Path, base_namespace: &str) -> Result<(), String> {
     let src_path = Path::new(src_dir);
 
     // Iterate through all Java files in the src directory recursively
@@ -34,24 +30,30 @@ pub fn copy_src_files(
                         .map_err(|_| "Failed to determine relative path.".to_string())?,
                 ),
                 // Append directory name to base namespace
-                &format!("{}.{}", base_namespace, path.file_name().unwrap().to_str().unwrap()),
+                &format!(
+                    "{}.{}",
+                    base_namespace,
+                    path.file_name().unwrap().to_str().unwrap()
+                ),
             )?;
         } else if path.extension().and_then(|ext| ext.to_str()) == Some("java") {
             // Calculate relative path from src directory
-            let relative_path = path.strip_prefix(src_path)
+            let relative_path = path
+                .strip_prefix(src_path)
                 .map_err(|_| "Failed to determine relative path.".to_string())?;
-            
+
             // Derive package name from relative path
             let parent = relative_path.parent().unwrap_or_else(|| Path::new(""));
             let relative_package = if parent.as_os_str().is_empty() {
                 String::from("")
             } else {
-                parent.to_str()
+                parent
+                    .to_str()
                     .ok_or("Failed to convert path to string.".to_string())?
                     .replace("\\", ".")
                     .replace("/", ".")
             };
-            
+
             let package = if relative_package.is_empty() {
                 base_namespace.to_string()
             } else {
@@ -64,12 +66,13 @@ pub fn copy_src_files(
                 .map_err(|_| "Failed to create package directory.".to_string())?;
 
             // Read the original Java file
-            let content = fs::read_to_string(&path)
-                .map_err(|_| "Failed to read Java file.".to_string())?;
+            let content =
+                fs::read_to_string(&path).map_err(|_| "Failed to read Java file.".to_string())?;
 
             // Add or replace package declaration
             let new_content = if let Some(start) = content.find("package ") {
-                let end = content[start..].find(';')
+                let end = content[start..]
+                    .find(';')
                     .ok_or("Failed to find end of package declaration.".to_string())?
                     + start
                     + 1;

@@ -1,5 +1,7 @@
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
 
 #[derive(Deserialize)]
 pub struct Config {
@@ -13,13 +15,9 @@ pub struct Project {
     pub version: String,
     pub main_class: String,
     pub build_tool: String,
-    pub base_namespace: String, // Base namespace for the project
+    pub base_namespace: String,    // Base namespace for the project
     pub root_path: Option<String>, // Path to the project root
 }
-
-use std::fs;
-use std::path::Path;
-use toml;
 
 pub fn load_config() -> Result<Config, String> {
     let config_path = "rsj.toml";

@@ -8,7 +8,7 @@ use crate::utils::{basic_seperator, printinfo, GRADLE_PATH, OUTPUT_PATH};
 pub fn run_project() -> Result<(), String> {
     build_project()?;
 
-    let config = load_config().map_err(|e| e)?;
+    let config = load_config()?;
     let temp_path = Path::new(OUTPUT_PATH).to_path_buf();
 
     // Now always use Gradle-specific path
@@ -16,7 +16,10 @@ pub fn run_project() -> Result<(), String> {
         .join(GRADLE_PATH)
         .join("build")
         .join("libs")
-        .join(format!("{}-{}.jar", config.project.name, config.project.version));
+        .join(format!(
+            "{}-{}.jar",
+            config.project.name, config.project.version
+        ));
 
     if !jar_path.exists() {
         return Err("Build output JAR not found.".to_string());

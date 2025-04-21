@@ -1,7 +1,12 @@
 [package]
-name = "rusty-java"
+name = "rsj"
 version = "0.1.0"
 edition = "2021"
+description = "Rusty Java is a tool for using a Rust-like folder structure for Java projects."
+license = "MIT"
+authors = ["Zander Lewis <zander@zanderlewis.dev>"]
+repository = "https://github.com/zanderlewis/rusty-java"
+homepage = "https://zanderlewis.dev"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

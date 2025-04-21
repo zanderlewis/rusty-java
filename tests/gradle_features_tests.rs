@@ -103,7 +103,8 @@ fn setup_test_project(project_name: &str) -> Result<std::path::PathBuf, String> 
 
     writeln!(
         main_file,
-        r#"public class Main {{
+        r#"
+        public class Main {{
     public static void main(String[] args) {{
         System.out.println("Hello from {}, built with enhanced Gradle!");
     }}
@@ -119,7 +120,8 @@ fn setup_test_project(project_name: &str) -> Result<std::path::PathBuf, String> 
 
     writeln!(
         toml_file,
-        r#"[project]
+        r#"
+        [project]
 name = "{}"
 version = "1.0.0"
 main_class = "Main"

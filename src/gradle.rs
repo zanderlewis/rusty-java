@@ -44,6 +44,7 @@ pub fn setup_gradle_project(
             "src/main/java".to_owned() + "/" + &config.project.base_namespace.replace(".", "/"),
         ),
         &config.project.base_namespace,
+        &config.project.name,
     )?;
 
     // settings.gradle content

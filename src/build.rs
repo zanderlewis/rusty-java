@@ -44,7 +44,10 @@ base_namespace = "com.example"
         File::create(main_class_path).map_err(|_| "Failed to create `Main.java`.".to_string())?;
     writeln!(
         main_class_file,
-        r#"public class Main {{
+        r#"
+        import classone.ClassOne;
+        import classtwo.ClassTwo;
+        public class Main {{
 
     public static void main(String[] args) {{
         ClassOne.oneMethod();
@@ -64,7 +67,8 @@ base_namespace = "com.example"
         File::create(classone_path).map_err(|_| "Failed to create `ClassOne.java`.".to_string())?;
     writeln!(
         classone_file,
-        r#"public class ClassOne {{
+        r#"
+        public class ClassOne {{
 
     public static void oneMethod() {{
         System.out.println("ClassOne method");
@@ -83,7 +87,8 @@ base_namespace = "com.example"
         File::create(classtwo_path).map_err(|_| "Failed to create `ClassTwo.java`.".to_string())?;
     writeln!(
         classtwo_file,
-        r#"public class ClassTwo {{
+        r#"
+        public class ClassTwo {{
 
     public static void twoMethod() {{
         System.out.println("ClassTwo method");

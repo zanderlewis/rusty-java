@@ -3,9 +3,9 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 
-use crate::buildtools::gradle::setup_gradle_project;
 use crate::config::load_config;
-use crate::utils::{gradle_seperator, printinfo, rsj_seperator, GRADLE_PATH, OUTPUT_PATH};
+use crate::gradle::setup_gradle_project;
+use crate::utils::{printinfo, seperator, GRADLE_PATH, OUTPUT_PATH};
 
 pub fn init_project() -> Result<(), String> {
     let config_path = Path::new("rsj.toml");
@@ -27,7 +27,6 @@ pub fn init_project() -> Result<(), String> {
 name = "my_project"
 version = "0.1.0"
 main_class = "Main"
-build_tool = "gradle"
 base_namespace = "com.example"
 
 # [dependencies]
@@ -102,11 +101,6 @@ base_namespace = "com.example"
 pub fn build_project() -> Result<(), String> {
     let config = load_config()?;
 
-    // Only allow gradle as build_tool
-    if config.project.build_tool.to_lowercase() != "gradle" {
-        return Err("Error: Only Gradle is supported as the build tool.".to_string());
-    }
-
     let src_dir = Path::new(config.project.root_path.as_deref().unwrap_or(".")).join("src");
     if !src_dir.exists() {
         return Err("Error: `src` directory is missing.".to_string());
@@ -128,7 +122,7 @@ pub fn build_project() -> Result<(), String> {
         temp_path.display()
     ));
 
-    gradle_seperator();
+    seperator();
 
     // Setup and build the Gradle project
     setup_gradle_project(&config, src_dir.to_str().unwrap(), &temp_path)?;
@@ -136,41 +130,24 @@ pub fn build_project() -> Result<(), String> {
     // Define the Gradle project directory
     let gradle_project_dir = temp_path.join(GRADLE_PATH);
 
-    // Run Gradle with wrapper if available, otherwise use system's Gradle
-    let build_status = if Path::new(&gradle_project_dir.join("gradlew")).exists() {
-        #[cfg(target_os = "windows")]
-        {
-            Command::new("cmd")
-                .args(&["/C", "gradlew.bat", "shadowJar"])
-                .current_dir(&gradle_project_dir)
-                .status()
-        }
-        #[cfg(not(target_os = "windows"))]
-        {
-            Command::new("./gradlew")
-                .arg("shadowJar")
-                .current_dir(&gradle_project_dir)
-                .status()
-        }
-    } else {
-        #[cfg(target_os = "windows")]
-        {
-            Command::new("cmd")
-                .args(&["/C", "gradle", "shadowJar"])
-                .current_dir(&gradle_project_dir)
-                .status()
-        }
-        #[cfg(not(target_os = "windows"))]
-        {
-            Command::new("gradle")
-                .arg("shadowJar")
-                .current_dir(&gradle_project_dir)
-                .status()
-        }
-    }
-    .map_err(|_| "Failed to run Gradle build.".to_string())?;
+    // Determine whether to use shadowJar or default build
+    let use_shadow = config.project.use_shadow.unwrap_or(true);
+    let task = if use_shadow { "shadowJar" } else { "build" };
 
-    rsj_seperator();
+    // Run Gradle build using wrapper if available
+    let gradlew_path = gradle_project_dir.join("gradlew");
+    let (program, args) = if gradlew_path.exists() {
+        ("./gradlew", vec![task] as Vec<&str>)
+    } else {
+        ("gradle", vec![task])
+    };
+    let build_status = Command::new(program)
+        .args(&args)
+        .current_dir(&gradle_project_dir)
+        .status()
+        .map_err(|_| "Failed to run Gradle build.".to_string())?;
+
+    seperator();
 
     if build_status.success() {
         printinfo("Build succeeded! Output is in the temporary directory.");

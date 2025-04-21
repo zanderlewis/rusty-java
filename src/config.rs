@@ -14,9 +14,11 @@ pub struct Project {
     pub name: String,
     pub version: String,
     pub main_class: String,
-    pub build_tool: String,
-    pub base_namespace: String,    // Base namespace for the project
-    pub root_path: Option<String>, // Path to the project root
+    pub base_namespace: String,         // Base namespace for the project
+    pub root_path: Option<String>,      // Path to the project root
+    pub gradle_version: Option<String>, // Optional Gradle distribution version
+    pub shadow_plugin_version: Option<String>, // Optional Shadow plugin version
+    pub use_shadow: Option<bool>,       // Whether to apply the ShadowJar plugin
 }
 
 pub fn load_config() -> Result<Config, String> {

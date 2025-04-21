@@ -10,7 +10,6 @@ RSJ is a tool written in Rust for using a cargo-like file structure for Gradle J
 - Automatic namespace/package management
 - Gradle wrapper included for reproducible builds
 - Optimized Gradle configuration for better performance
-- JUnit 5 testing support
 - ShadowJar for creating fat JARs with dependencies
 
 ## Getting Started

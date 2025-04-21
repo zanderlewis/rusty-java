@@ -3,7 +3,7 @@ use std::process::Command;
 
 use crate::build::build_project;
 use crate::config::load_config;
-use crate::utils::{basic_seperator, printinfo, GRADLE_PATH, OUTPUT_PATH};
+use crate::utils::{printinfo, seperator, GRADLE_PATH, OUTPUT_PATH};
 
 pub fn run_project() -> Result<(), String> {
     build_project()?;
@@ -26,7 +26,7 @@ pub fn run_project() -> Result<(), String> {
     }
 
     printinfo(&format!("Running {}", jar_path.display()));
-    basic_seperator();
+    seperator();
 
     let status = Command::new("java")
         .arg("-jar")

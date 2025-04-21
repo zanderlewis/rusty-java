@@ -1,13 +1,13 @@
 mod build;
-mod buildtools;
 mod commands;
 mod config;
+mod gradle;
 mod run;
 mod utils;
 
 use clap::Parser;
 use commands::Commands;
-use utils::{basic_seperator, printerr, rsj_seperator};
+use utils::{printerr, seperator};
 
 #[derive(Parser)]
 #[clap(name = "rsj", version = "0.1.0", author = "")]
@@ -19,7 +19,7 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
-    rsj_seperator();
+    seperator();
 
     match cli.command {
         Commands::Build => {
@@ -43,5 +43,5 @@ fn main() {
             }
         }
     }
-    basic_seperator();
+    seperator();
 }

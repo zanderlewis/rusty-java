@@ -6,11 +6,24 @@ use std::path::Path;
 use crate::config::Config;
 use crate::utils::{copy_src_files, GRADLE_PATH};
 
+// Helper to write content to file with error mapping
+fn write_file(path: &Path, content: &str) -> Result<(), String> {
+    fs::write(path, content).map_err(|e| format!("Failed to write {}: {}", path.display(), e))
+}
+
 pub fn setup_gradle_project(
     config: &Config,
     src_dir: &str,
     temp_path: &Path,
 ) -> Result<(), String> {
+    // determine versions from config or defaults
+    let gradle_ver = config.project.gradle_version.as_deref().unwrap_or("8.4");
+    let shadow_ver = config
+        .project
+        .shadow_plugin_version
+        .as_deref()
+        .unwrap_or("7.1.2");
+
     let gradle_dir = temp_path.join(GRADLE_PATH);
     let build_file_path = gradle_dir.join("build.gradle");
     let settings_file_path = gradle_dir.join("settings.gradle");
@@ -33,14 +46,10 @@ pub fn setup_gradle_project(
         &config.project.base_namespace,
     )?;
 
-    // Create `settings.gradle` and set the project name
-    let mut settings_file = File::create(&settings_file_path)
-        .map_err(|_| "Failed to create `settings.gradle`.".to_string())?;
-    writeln!(
-        settings_file,
+    // settings.gradle content
+    let settings = format!(
         r#"rootProject.name = '{}'
 
-// Apply centralized repository configuration
 dependencyResolutionManagement {{
     repositories {{
         mavenCentral()
@@ -49,91 +58,58 @@ dependencyResolutionManagement {{
     }}
 }}"#,
         config.project.name
-    )
-    .map_err(|_| "Failed to write to `settings.gradle`.".to_string())?;
+    );
+    write_file(&settings_file_path, &settings)?;
 
-    // Create gradle.properties with performance options
-    let mut properties_file = File::create(&gradle_properties_path)
-        .map_err(|_| "Failed to create `gradle.properties`.".to_string())?;
-    writeln!(
-        properties_file,
-        r#"# Gradle performance improvements
+    // gradle.properties content
+    let properties = r#"# Gradle performance improvements
 org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError
 org.gradle.parallel=true
 org.gradle.caching=true
 org.gradle.configureondemand=true
 
 # Enable file system watching for faster incremental builds
-org.gradle.vfs.watch=true"#
-    )
-    .map_err(|_| "Failed to write to `gradle.properties`.".to_string())?;
+org.gradle.vfs.watch=true"#;
+    write_file(&gradle_properties_path, properties)?;
 
-    // Create `build.gradle`
-    let mut build_file = File::create(&build_file_path)
-        .map_err(|_| "Failed to create `build.gradle`.".to_string())?;
-    writeln!(
-        build_file,
-        r#"plugins {{
-    id 'java'
-    id 'application'
-    id 'java-library'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
-}}
-
-group = '{}'
-version = '{}'
-
-application {{
-    mainClass = '{}'
-}}
-
-java {{
-    withSourcesJar()
-    withJavadocJar()
-}}
-
-repositories {{
-    mavenCentral()
-    google()
-}}
-
-dependencies {{
-{}
-    // Testing dependencies
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-}}
-
-test {{
-    useJUnitPlatform()
-    testLogging {{
-        events "passed", "skipped", "failed"
-    }}
-}}
-
-tasks.named('jar') {{
-    manifest {{
-        attributes(
-            'Main-Class': '{}'
-        )
-    }}
-}}
-
-shadowJar {{
-    archiveClassifier.set('')
-    archiveVersion.set(version)
-    mergeServiceFiles()
-}}"#,
+    let deps = generate_gradle_dependencies(&config.dependencies);
+    // Determine if Shadow plugin should be included
+    let shadow_enabled = config.project.use_shadow.unwrap_or(true);
+    // Build plugins block dynamically
+    let mut plugins = vec![
+        "    id 'java'".to_string(),
+        "    id 'application'".to_string(),
+        "    id 'java-library'".to_string(),
+    ];
+    if shadow_enabled {
+        plugins.push(format!(
+            "    id 'com.github.johnrengelman.shadow' version '{}'",
+            shadow_ver
+        ));
+    }
+    let plugins_block = plugins.join("\n");
+    // Assemble build.gradle content
+    let mut build = format!(
+        "plugins {{\n{}\n}}\n\ngroup = '{}'\nversion = '{}'\n\napplication {{\n    mainClass = '{}.{}'\n}}\n\njava {{\n    withSourcesJar()\n    withJavadocJar()\n}}\n\nrepositories {{\n    mavenCentral()\n    google()\n}}\n\ndependencies {{\n{}\n    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'\n    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'\n}}\n\ntest {{\n    useJUnitPlatform()\n    testLogging {{\n        events \"passed\", \"skipped\", \"failed\"\n    }}\n}}\n\ntasks.named('jar') {{\n    manifest {{\n        attributes(\n            'Main-Class': '{}.{}'\n        )\n    }}\n}}",
+        plugins_block,
         config.project.name,
         config.project.version,
-        config.project.base_namespace.to_owned() + "." + &config.project.main_class,
-        generate_gradle_dependencies(&config.dependencies),
-        config.project.base_namespace.to_owned() + "." + &config.project.main_class
-    )
-    .map_err(|_| "Failed to write to `build.gradle`.".to_string())?;
+        config.project.base_namespace,
+        config.project.main_class,
+        deps,
+        config.project.base_namespace,
+        config.project.main_class
+    );
+    // Optionally append shadowJar task
+    if shadow_enabled {
+        build.push_str(
+            "\nshadowJar {\n    archiveClassifier.set('')\n    archiveVersion.set(version)\n    mergeServiceFiles()\n}\n",
+        );
+    }
+    write_file(&build_file_path, &build)?;
 
-    // Create a Gradle wrapper
-    create_gradle_wrapper(&gradle_dir)?;
+    // Create a Gradle wrapper with dynamic gradle version
+    create_gradle_wrapper(&gradle_dir, gradle_ver)?;
 
     Ok(())
 }
@@ -152,24 +128,20 @@ fn generate_gradle_dependencies(
         .unwrap_or_default()
 }
 
-fn create_gradle_wrapper(gradle_dir: &Path) -> Result<(), String> {
+fn create_gradle_wrapper(gradle_dir: &Path, gradle_version: &str) -> Result<(), String> {
     // Create the gradle/wrapper directory
     fs::create_dir_all(gradle_dir.join("gradle/wrapper"))
         .map_err(|_| "Failed to create Gradle wrapper directory.".to_string())?;
 
-    // Create gradle-wrapper.properties
+    // Write wrapper properties with dynamic gradle version
     let mut properties_file =
         File::create(gradle_dir.join("gradle/wrapper/gradle-wrapper.properties"))
             .map_err(|_| "Failed to create gradle-wrapper.properties.".to_string())?;
 
     writeln!(
         properties_file,
-        r#"distributionBase=GRADLE_USER_HOME
-distributionPath=wrapper/dists
-distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip
-networkTimeout=10000
-zipStoreBase=GRADLE_USER_HOME
-zipStorePath=wrapper/dists"#
+        "distributionBase=GRADLE_USER_HOME\ndistributionPath=wrapper/dists\ndistributionUrl=https://services.gradle.org/distributions/gradle-{}-bin.zip\nnetworkTimeout=10000\nzipStoreBase=GRADLE_USER_HOME\nzipStorePath=wrapper/dists",
+        gradle_version
     )
     .map_err(|_| "Failed to write gradle-wrapper.properties.".to_string())?;
 

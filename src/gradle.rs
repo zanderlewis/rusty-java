@@ -4,7 +4,7 @@ use std::io::Write;
 use std::path::Path;
 
 use crate::config::Config;
-use crate::utils::{copy_src_files, GRADLE_PATH};
+use crate::utils::{GRADLE_PATH, copy_src_files};
 
 // Helper to write content to file with error mapping
 fn write_file(path: &Path, content: &str) -> Result<(), String> {
@@ -44,7 +44,6 @@ pub fn setup_gradle_project(
             "src/main/java".to_owned() + "/" + &config.project.base_namespace.replace(".", "/"),
         ),
         &config.project.base_namespace,
-        &config.project.name,
     )?;
 
     // settings.gradle content

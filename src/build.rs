@@ -5,7 +5,7 @@ use std::process::Command;
 
 use crate::config::load_config;
 use crate::gradle::setup_gradle_project;
-use crate::utils::{printinfo, seperator, GRADLE_PATH, OUTPUT_PATH};
+use crate::utils::{GRADLE_PATH, OUTPUT_PATH, printinfo, seperator};
 
 pub fn init_project() -> Result<(), String> {
     let config_path = Path::new("rsj.toml");

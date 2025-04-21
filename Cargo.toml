@@ -1,7 +1,7 @@
 [package]
 name = "rsj"
-version = "0.0.2"
-edition = "2021"
+version = "0.0.3"
+edition = "2024"
 description = "Rusty Java is a tool for using a Rust-like folder structure for Java projects."
 license = "MIT"
 authors = ["Zander Lewis <zander@zanderlewis.dev>"]

@@ -3,7 +3,7 @@ use std::process::Command;
 
 use crate::build::build_project;
 use crate::config::load_config;
-use crate::utils::{printinfo, seperator, GRADLE_PATH, OUTPUT_PATH};
+use crate::utils::{GRADLE_PATH, OUTPUT_PATH, printinfo, seperator};
 
 pub fn run_project() -> Result<(), String> {
     build_project()?;

@@ -14,12 +14,7 @@ pub fn printinfo(msg: &str) {
     println!("{}{}", "[INFO] ".blue().bold(), msg);
 }
 
-pub fn copy_src_files(
-    src_dir: &str,
-    dest_dir: &Path,
-    base_namespace: &str,
-    proj_name: &str,
-) -> Result<(), String> {
+pub fn copy_src_files(src_dir: &str, dest_dir: &Path, base_namespace: &str) -> Result<(), String> {
     for entry in WalkDir::new(src_dir)
         .into_iter()
         .filter_map(Result::ok)
@@ -47,14 +42,10 @@ pub fn copy_src_files(
             fs::read_to_string(path).map_err(|e| format!("Failed to read Java file: {}", e))?;
         let new_content = if content.contains("package ") {
             let parts: Vec<&str> = content.splitn(2, ';').collect();
-            format!(
-                "package {}.{};{}",
-                package,
-                proj_name,
-                parts.get(1).unwrap_or(&"")
-            )
+            let rest = parts.get(1).unwrap_or(&"");
+            format!("package {};\n{}", package, rest)
         } else {
-            format!("package {}.{};{}", package, proj_name, content)
+            format!("package {};\n{}", package, content)
         };
 
         let target_file = target_dir.join(path.file_name().unwrap());

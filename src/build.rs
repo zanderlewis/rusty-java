@@ -134,13 +134,18 @@ pub fn build_project() -> Result<(), String> {
     let use_shadow = config.project.use_shadow.unwrap_or(true);
     let task = if use_shadow { "shadowJar" } else { "build" };
 
-    // Run Gradle build using wrapper if available
+    // Run Gradle build using wrapper if available and wrapper jar exists
     let gradlew_path = gradle_project_dir.join("gradlew");
-    let (program, args) = if gradlew_path.exists() {
+    let wrapper_jar_path = gradle_project_dir
+        .join("gradle")
+        .join("wrapper")
+        .join("gradle-wrapper.jar");
+    let (program, args) = if gradlew_path.exists() && wrapper_jar_path.exists() {
         ("./gradlew", vec![task] as Vec<&str>)
     } else {
         ("gradle", vec![task])
     };
+
     let build_status = Command::new(program)
         .args(&args)
         .current_dir(&gradle_project_dir)

@@ -7,7 +7,7 @@ mod utils;
 
 use clap::Parser;
 use commands::Commands;
-use utils::{printerr, seperator};
+use utils::{printerr, separator};
 
 #[derive(Parser)]
 #[clap(name = "rsj", version = "0.1.0", author = "")]
@@ -19,29 +19,18 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
-    seperator();
+    separator();
 
-    match cli.command {
-        Commands::Build => {
-            if let Err(e) = build::build_project() {
-                printerr(&e);
-            }
-        }
-        Commands::Run => {
-            if let Err(e) = run::run_project() {
-                printerr(&e);
-            }
-        }
-        Commands::Clean => {
-            if let Err(e) = build::clean_build() {
-                printerr(&e);
-            }
-        }
-        Commands::Init => {
-            if let Err(e) = build::init_project() {
-                printerr(&e);
-            }
-        }
+    let result = match cli.command {
+        Commands::Build => build::build_project(),
+        Commands::Run => run::run_project(),
+        Commands::Clean => build::clean_build(),
+        Commands::Init => build::init_project(),
+    };
+
+    if let Err(e) = result {
+        printerr(&e);
     }
-    seperator();
+
+    separator();
 }

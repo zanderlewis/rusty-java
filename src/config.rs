@@ -23,14 +23,30 @@ pub struct Project {
 
 pub fn load_config() -> Result<Config, String> {
     let config_path = "rsj.toml";
+
     if !Path::new(config_path).exists() {
-        return Err("Error: Missing `rsj.toml` file.".to_string());
+        return Err(format!(
+            "Error: Missing `{}` file. Run 'rsj init' to create a new project.",
+            config_path
+        ));
     }
 
-    let config_content =
-        fs::read_to_string(config_path).map_err(|_| "Failed to read `rsj.toml`.".to_string())?;
-    let config: Config =
-        toml::from_str(&config_content).map_err(|_| "Invalid TOML format.".to_string())?;
+    // Load config file content
+    let config_content = fs::read_to_string(config_path)
+        .map_err(|e| format!("Failed to read `{}`: {}", config_path, e))?;
+
+    // Parse TOML content into Config struct
+    let config: Config = toml::from_str(&config_content)
+        .map_err(|e| format!("Invalid TOML format in `{}`: {}", config_path, e))?;
+
+    // Basic validation
+    if config.project.name.trim().is_empty() {
+        return Err("Project name cannot be empty in rsj.toml".to_string());
+    }
+
+    if config.project.main_class.trim().is_empty() {
+        return Err("Main class name cannot be empty in rsj.toml".to_string());
+    }
 
     Ok(config)
 }

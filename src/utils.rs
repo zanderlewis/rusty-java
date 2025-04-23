@@ -14,6 +14,13 @@ pub fn printinfo(msg: &str) {
     println!("{}{}", "[INFO] ".blue().bold(), msg);
 }
 
+pub fn separator() {
+    println!(
+        "{}",
+        "=========================================================================".green()
+    );
+}
+
 pub fn copy_src_files(src_dir: &str, dest_dir: &Path, base_namespace: &str) -> Result<(), String> {
     for entry in WalkDir::new(src_dir)
         .into_iter()
@@ -53,11 +60,4 @@ pub fn copy_src_files(src_dir: &str, dest_dir: &Path, base_namespace: &str) -> R
             .map_err(|e| format!("Failed to write Java file: {}", e))?;
     }
     Ok(())
-}
-
-pub fn seperator() {
-    println!(
-        "{}",
-        "=========================================================================".green()
-    );
 }

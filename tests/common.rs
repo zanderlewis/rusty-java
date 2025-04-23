@@ -3,6 +3,8 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
+const BINARY_NAME: &str = "rsj";
+
 // Helper function to run a command in a specific directory
 pub fn run_command_in_dir(dir: &Path, program: &str, args: &[&str]) -> Result<(), String> {
     let output = Command::new(program)
@@ -50,10 +52,10 @@ pub fn prepare_example_project(example_name: &str) -> Result<std::path::PathBuf,
     Ok(example_path)
 }
 
-// Find the path to the rusty-java binary
+// Find the path to the binary
 fn find_binary_path() -> Result<std::path::PathBuf, String> {
     // First try the cargo env var approach
-    if let Ok(path) = env::var("CARGO_BIN_EXE_rusty-java") {
+    if let Ok(path) = env::var(format!("CARGO_BIN_EXE_{}", BINARY_NAME)) {
         let binary_path = Path::new(&path);
         if binary_path.exists() {
             return Ok(binary_path.to_path_buf());
@@ -65,13 +67,13 @@ fn find_binary_path() -> Result<std::path::PathBuf, String> {
         .map_err(|_| "Failed to get CARGO_MANIFEST_DIR".to_string())?;
 
     // Try debug build
-    let debug_path = Path::new(&manifest_dir).join("target/debug/rusty-java");
+    let debug_path = Path::new(&manifest_dir).join(format!("target/debug/{}", BINARY_NAME));
     if debug_path.exists() {
         return Ok(debug_path);
     }
 
     // Try release build
-    let release_path = Path::new(&manifest_dir).join("target/release/rusty-java");
+    let release_path = Path::new(&manifest_dir).join(format!("target/release/{}", BINARY_NAME));
     if release_path.exists() {
         return Ok(release_path);
     }
@@ -82,18 +84,18 @@ fn find_binary_path() -> Result<std::path::PathBuf, String> {
         .args(&["build"])
         .current_dir(&manifest_dir)
         .status()
-        .map_err(|_| "Failed to build rusty-java binary".to_string())?;
+        .map_err(|_| "Failed to build binary".to_string())?;
 
     if !status.success() {
-        return Err("Failed to build rusty-java binary".to_string());
+        return Err("Failed to build binary".to_string());
     }
 
-    let debug_path = Path::new(&manifest_dir).join("target/debug/rusty-java");
+    let debug_path = Path::new(&manifest_dir).join(format!("target/debug/{}", BINARY_NAME));
     if debug_path.exists() {
         return Ok(debug_path);
     }
 
-    Err("Could not find or build rusty-java binary".to_string())
+    Err("Could not find or build the binary".to_string())
 }
 
 // Execute rsj command on an example project

@@ -3,7 +3,7 @@ use std::process::Command;
 
 use crate::build::build_project;
 use crate::config::load_config;
-use crate::utils::{GRADLE_PATH, OUTPUT_PATH, printinfo, seperator};
+use crate::utils::{GRADLE_PATH, OUTPUT_PATH, printinfo, separator};
 
 pub fn run_project() -> Result<(), String> {
     build_project()?;
@@ -11,7 +11,6 @@ pub fn run_project() -> Result<(), String> {
     let config = load_config()?;
     let temp_path = Path::new(OUTPUT_PATH).to_path_buf();
 
-    // Now always use Gradle-specific path
     let jar_path = temp_path
         .join(GRADLE_PATH)
         .join("build")
@@ -26,7 +25,7 @@ pub fn run_project() -> Result<(), String> {
     }
 
     printinfo(&format!("Running {}", jar_path.display()));
-    seperator();
+    separator();
 
     let status = Command::new("java")
         .arg("-jar")
